@@ -13,66 +13,44 @@ function registerUser($username, $password) {
     $xml = simplexml_load_file($xmlFile);
 
     foreach ($xml->user as $user) {
-        if ($user->username == $username) {
-            return "Gebruiker bestaat al.";
+        if ($user->email == $username) {
+            return "Dit e-mailadres is al in gebruik.";
         }
-    }
+    }    
 
+    // Nieuwe gebruiker toevoegen
     $newUser = $xml->addChild('user');
-    $newUser->addChild('username', $username);
-    $newUser->addChild('password', password_hash($password, PASSWORD_DEFAULT));
-    $xml->asXML($xmlFile);
+    $newUser->addChild('email', $username);
+    $newUser->addChild('password', $password); // NIET-geëncrypteerd opslaan
 
+    // Mooi opmaken met DOMDocument
+    $dom = new DOMDocument('1.0');
+    $dom->preserveWhiteSpace = false;
+    $dom->formatOutput = true;
+    $dom->loadXML($xml->asXML());
+    $dom->save($xmlFile);
+
+    // Redirect na succesvol registreren
     header("Location: Inlogpagina.php?success=registered");
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['register'])) {
-        $message = registerUser($_POST['username'], $_POST['password']);
-    }
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
+    $message = registerUser($_POST['username'], $_POST['password']);
 }
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <title>Registreren</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            text-align: center;
-            margin: 50px;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px 0px #0000001a;
-            display: inline-block;
-        }
-        input, button {
-            margin: 10px;
-            padding: 10px;
-            width: 80%;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="register.css">
 </head>
 <body>
     <div class="container">
         <h2>Account aanmaken</h2>
-        <?php if (isset($message)) echo "<p style='color: red;'>$message</p>"; ?>
+        <?php if (isset($message)) echo "<p class='error'>$message</p>"; ?>
         <form method="post">
-            <input type="text" name="username" placeholder="Gebruikersnaam" required><br>
+            <input type="email" name="username" placeholder="E-mailadres" required><br>
             <input type="password" name="password" placeholder="Wachtwoord" required><br>
             <button type="submit" name="register">Registreren</button>
         </form>
