@@ -1,7 +1,7 @@
-let map = L.map('map').setView([51.1, 4.4], 9); // Vlaanderen, Antwerpen in het midden
+let map = L.map('map').setView([51.1, 4.4], 9); // VOnze regio in het midden
 let routeControl;
 let routeDistanceKm = 0;
-const apiKey = 'e5c7456ed9c32736eb22911896c78b40'; // <-- Jouw API-sleutel hier
+const apiKey = 'e5c7456ed9c32736eb22911896c78b40';
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors'

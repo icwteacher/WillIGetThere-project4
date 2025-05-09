@@ -1,5 +1,6 @@
 <?php
-session_start();
+session_start(); // Start sessie
+// Als gebruiker niet is ingelogd, terugsturen naar loginpagina
 if (!isset($_SESSION['username'])) {
     header("Location: Inlogpagina.php");
     exit();
@@ -14,18 +15,20 @@ if (!isset($_SESSION['username'])) {
 <body>
     <div class="container">
         <h2>Welkom op de site!</h2>
+
+        <!-- Toon ingelogde gebruiker -->
         <p>Je bent succesvol ingelogd als <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>.</p>
 
-        <!-- Countdown melding -->
-        <p id="countdown">Je wordt doorgestuurd over <span id="seconds">5</span> seconden...</p>
+        <!-- Aftellen voor redirect -->
+        <p id="countdown">Je wordt doorgestuurd over <span id="seconds">3</span> seconden...</p>
 
-        <!-- Uitlogformulier -->
+        <!-- Uitloggen -->
         <form action="logout.php" method="post">
             <button type="submit">Uitloggen</button>
         </form>
     </div>
 
-    <!-- JavaScript redirect -->
+    <!-- Start de countdown met redirect.js -->
     <script src="redirect.js"></script>
 </body>
 </html>
