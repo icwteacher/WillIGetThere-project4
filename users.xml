@@ -1,2 +1,17 @@
 <?xml version="1.0"?>
-<users></users>
+<users>
+  <user>
+    <email>ThomasNelis@turkije.be</email>
+    <password>OcasionalBiome</password>
+    <factor>1</factor>
+  </user>
+  <user>
+    <email>simonheylen@abcd</email>
+    <password>abcd</password>
+    <factor>1</factor>
+  </user>
+  <user>
+    <email>meister@meister</email>
+    <password>meister</password>
+  <factor>0.91666666666667</factor></user>
+</users>

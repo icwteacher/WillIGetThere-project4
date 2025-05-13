@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fietsroute Energie Calculator</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
@@ -15,11 +15,20 @@
   <div class="input-section">
     <label>Beginadres: <input type="text" id="startAddress" placeholder="Startadres..."></label>
     <label>Eindadres: <input type="text" id="endAddress" placeholder="Eindadres..."></label>
-    <button onclick="calculateRoute()">Route berekenen</button>
+    <button onclick="calculateRoute()">Bereken energie</button>
     <button onclick="resetForm()">Reset</button>
   </div>
 
   <div id="result"></div>
+
+  <div id="feedback" style="margin-top: 20px;">
+    <h3>Feedback op energieverbruik</h3>
+    <p>Was het echte energieverbruik verschillend?</p>
+    <label for="effectief">Effectief energieverbruik (Wh):</label>
+    <input type="number" id="effectief" placeholder="Effectief verbruik (Wh)" />
+    <button onclick="stuurFeedback()">Verzend feedback</button>
+    <p id="feedback-resultaat" style="margin-top: 10px; color: green;"></p>
+  </div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
