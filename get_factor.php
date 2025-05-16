@@ -1,21 +1,16 @@
 <?php
 header('Content-Type: application/json');
-
-$xmlFile = 'users.xml';
-
-if (!file_exists($xmlFile)) {
-    echo json_encode(['factor' => 1.0]); // standaard
-    exit;
-}
-
-$xml = simplexml_load_file($xmlFile);
-$email = 'default@gebruiker'; // of haal dit dynamisch op
-
-foreach ($xml->gebruiker as $gebruiker) {
-    if ((string)$gebruiker->email === $email) {
-        echo json_encode(['factor' => (float)$gebruiker->factor]);
-        exit;
+if (isset($_GET['email'])) {
+    $email = $_GET['email'];
+    $xml = simplexml_load_file('users.xml');
+    foreach ($xml->user as $user) {
+        if ((string)$user->email === $email) {
+            echo json_encode(['factor' => (float)$user->factor]);
+            exit;
+        }
     }
+    echo json_encode(['error' => 'User not found']);
+} else {
+    echo json_encode(['error' => 'No email provided']);
 }
-
-echo json_encode(['factor' => 1.0]); // fallback
+?>

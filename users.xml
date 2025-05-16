@@ -13,5 +13,15 @@
   <user>
     <email>meister@meister</email>
     <password>meister</password>
-  <factor>0.91666666666667</factor></user>
+    <factor>0.91666666666667</factor>
+  </user>
+  <user>
+    <email>default@user</email>
+    <password>placeholder</password>
+    <factor>1.128195</factor>
+  </user>
+  <user>
+    <email>l@l</email>
+    <password>gg</password>
+  </user>
 </users>

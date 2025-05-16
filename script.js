@@ -1,6 +1,6 @@
-let map = L.map('map').setView([51.2194, 4.4025], 13); // Start in Antwerpen
+let map = L.map('map').setView([51.2194, 4.4025], 8); // Start in Antwerpen
 let routeControl;
-let energieZonderCorrectie = 0;
+let energieZonderCorrectie = 0; // in Wh
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
@@ -20,6 +20,9 @@ function calculateRoute() {
   }
 
   energieZonderCorrectie = 0;
+
+  // Haal het e-mailadres van de ingelogde gebruiker op
+  const gebruikerEmail = localStorage.getItem('email') || 'default@user';
 
   fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${start}`)
     .then(res => res.json())
@@ -48,7 +51,7 @@ function calculateRoute() {
             const coordinates = route.coordinates;
             const samplePoints = [coordinates[0], coordinates[Math.floor(coordinates.length / 2)], coordinates[coordinates.length - 1]];
             const windRequests = samplePoints.map(p =>
-              fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${p.lat}&lon=${p.lng}&appid=ae514b1d22269f9e045514f22bdb61a1&units=metric`)
+              fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${p.lat}&lon=${p.lng}&appid=e5c7456ed9c32736eb22911896c78b40&units=metric`)
             );
 
             Promise.all(windRequests)
@@ -68,21 +71,35 @@ function calculateRoute() {
                 const windAngle = Math.abs(avgWindDir - heading);
                 const windEffect = Math.cos(windAngle * Math.PI / 180); // headwind = -1, tailwind = 1
 
-                energieZonderCorrectie = totalDistance * 10; // Basis energie (Wh/km)
+                energieZonderCorrectie = totalDistance * 10; // Wh
                 const windCorrectie = 1 + (windEffect * avgWindSpeed / 20); // max ±50%
 
-                fetch('get_factor.php')
+                // Haal de factor op voor de ingelogde gebruiker
+                fetch('get_factor.php?email=' + encodeURIComponent(gebruikerEmail))
                   .then(r => r.json())
                   .then(data => {
-                    const factor = data.factor || 1.0;
+                    let factor = data.factor || 1.0;
+                    // Begrens de factor voor realistische waarden
+                    factor = Math.max(0.7, Math.min(1.3, factor));
+
                     const gecorrigeerdeEnergie = energieZonderCorrectie * windCorrectie * factor;
+
+                    // Omgerekend naar kWh
+                    const energieZonderCorrectieKWh = energieZonderCorrectie / 1000;
+                    const gecorrigeerdeEnergieKWh = gecorrigeerdeEnergie / 1000;
+
+                    // Windrichting en windtype bepalen
+                    const windRichtingTekst = gradenNaarWindrichting(avgWindDir);
+                    const windType = bepaalWindType(windAngle);
 
                     document.getElementById('result').innerHTML = `
                       <p><strong>Afstand:</strong> ${totalDistance.toFixed(2)} km</p>
-                      <p><strong>Basisenergie:</strong> ${energieZonderCorrectie.toFixed(2)} Wh</p>
-                      <p><strong>Gemiddelde wind:</strong> ${avgWindSpeed.toFixed(1)} m/s vanuit ${avgWindDir.toFixed(0)}°</p>
-                      <p><strong>Gecorrigeerde energie:</strong> ${gecorrigeerdeEnergie.toFixed(2)} Wh</p>
+                      <p><strong>Gemiddelde wind:</strong> ${avgWindSpeed.toFixed(1)} m/s uit ${avgWindDir.toFixed(0)}° (${windRichtingTekst})</p>
+                      <p><strong>Windtype:</strong> ${windType}</p>
+                      <p><strong>Energie:</strong> ${gecorrigeerdeEnergieKWh.toFixed(3)} kWh</p>
                     `;
+
+                    // Optioneel: factor updaten na feedback
                   });
               });
           });
@@ -103,16 +120,22 @@ function resetForm() {
 }
 
 function stuurFeedback() {
-  const effectief = parseFloat(document.getElementById('effectief').value);
-  if (isNaN(effectief) || effectief <= 0 || energieZonderCorrectie <= 0) {
-    alert("Voer een geldig effectief energieverbruik in.");
+  // Gebruiker vult effectief verbruik in kWh in!
+  const effectiefKWh = parseFloat(document.getElementById('effectief').value);
+  if (isNaN(effectiefKWh) || effectiefKWh <= 0 || energieZonderCorrectie <= 0) {
+    alert("Voer een geldig effectief energieverbruik in (in kWh).");
     return;
   }
+
+  // Zet energieZonderCorrectie om naar kWh voor de backend
+  const energieZonderCorrectieKWh = energieZonderCorrectie / 1000;
+
+  const gebruikerEmail = localStorage.getItem('email') || 'default@user';
 
   fetch('update_factor.php', {
     method: 'POST',
     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: `effectief=${effectief}&energieZonderCorrectie=${energieZonderCorrectie}`
+    body: `email=${encodeURIComponent(gebruikerEmail)}&effectief=${effectiefKWh}&energieZonderCorrectie=${energieZonderCorrectieKWh}`
   })
     .then(res => res.json())
     .then(data => {
@@ -137,3 +160,16 @@ function getHeading(start, end) {
   brng = brng * 180 / Math.PI;
   return (brng + 360) % 360;
 }
+
+function gradenNaarWindrichting(graden) {
+  const richtingen = ['N', 'NO', 'O', 'ZO', 'Z', 'ZW', 'W', 'NW', 'N'];
+  const index = Math.round(graden / 45);
+  return richtingen[index];
+}
+
+function bepaalWindType(windAngle) {
+  if (windAngle < 45 || windAngle > 315) return "Meewind";
+  if (windAngle > 135 && windAngle < 225) return "Tegenwind";
+  return "Zijwind";
+}
+
